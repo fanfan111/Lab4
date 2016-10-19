@@ -3,250 +3,427 @@ package com.company;
 import java.util.ArrayList;
 
 
-/**
+/**.
  * Created by forandroid on 16-9-23.
  */
-public class Union implements Cloneable{
-    ArrayList<Poly> ans;
+public class Union implements Cloneable {
 
-    Union () {
-        ans = new ArrayList<Poly>();
+  /**.
+   * Member variable: ans
+   */
+  private ArrayList<Poly> ans;
+
+  /**.
+   * @return the ans
+   */
+  public final ArrayList<Poly> getAns() {
+    return ans;
+  }
+
+  /**.
+   * @param ansParam the ans to set
+   */
+  public final void setAns(final ArrayList<Poly> ansParam) {
+    this.ans = ansParam;
+  }
+
+  /**.
+   * Construction method
+   */
+  Union() {
+    setAns(new ArrayList<Poly>());
+  }
+
+  /**.
+   * @see java.lang.Object#clone()
+   * @return Object
+   * @throws CloneNotSupportedException will throw CloneNotSupportedException
+   */
+  public final Object clone() throws CloneNotSupportedException {
+    Union cloned = new Union();
+    for (Poly p : getAns()) {
+      cloned.getAns().add((Poly) p.clone());
     }
 
-    public Object clone () throws CloneNotSupportedException{
-        Union cloned = new Union();
-        for (Poly p:ans) {
-            cloned.ans.add((Poly)p.clone());
+    return cloned;
+  }
+
+  /**.
+   * @param string param1
+   * @param num param2
+   * @return char
+   */
+  private char nstring(final String string, final int num) {
+    return string.charAt(num);
+  }
+
+  /**.
+   * @param string param1
+   * @return char
+   */
+  private char firstString(final String string) {
+    return nstring(string, 0);
+  }
+
+  /**.
+   * Created by forandroid.
+   */
+  private class MorphemeObj {
+
+    /**.
+     * Member variable: morpheme
+     */
+    private String morpheme;
+
+    /**.
+     * Member variable: flag
+     */
+    private int flag;
+
+    /**.
+     * @return the morpheme
+     */
+    public String getMorpheme() {
+      return morpheme;
+    }
+
+    /**.
+     * @param morphemeParam the morpheme to set
+     */
+    public void setMorpheme(final String morphemeParam) {
+      this.morpheme = morphemeParam;
+    }
+
+    /**.
+     * @return the flag
+     */
+    public int getFlag() {
+      return flag;
+    }
+
+    /**.
+     * @param flagParam the flag to set
+     */
+    public void setFlag(final int flagParam) {
+      this.flag = flagParam;
+    }
+
+    /**.
+     * @param morphemeInput param1
+     * @param flagInput param2
+     */
+    MorphemeObj(final String morphemeInput, final int flagInput) {
+      this.setFlag(flagInput);
+      this.setMorpheme(morphemeInput);
+    }
+  }
+
+  /**.
+   * @param string param1
+   * @return ArrayList
+   * @throws Exception will throw Exception
+   */
+  private ArrayList<MorphemeObj> splitMorpheme(final String string)
+      throws Exception {
+    int num = 0;
+    int startPoint = 0;
+    int flag;
+    if (firstString(string) == '-') {
+      startPoint++;
+      flag = -1;
+    } else {
+      flag = 1;
+    }
+
+    ArrayList<MorphemeObj> ansLocal = new ArrayList<MorphemeObj>();
+    for (int i = startPoint; i < string.length(); i++) {
+      if (nstring(string, i) == '(') {
+        num++;
+      } else if (nstring(string, i) == ')') {
+        num--;
+      } else if (nstring(string, i) == '+' && num == 0) {
+        ansLocal.add(new MorphemeObj(string.substring(startPoint, i), flag));
+        flag = 1;
+        startPoint = i + 1;
+      } else if (nstring(string, i) == '-' && num == 0
+          && nstring(string, i - 1) != '*') {
+        ansLocal.add(new MorphemeObj(string.substring(startPoint, i), flag));
+        flag = -1;
+        startPoint = i + 1;
+      }
+    }
+
+    ansLocal.add(new MorphemeObj(string.substring(startPoint, string.length()),
+        flag));
+    if (num != 0) {
+      throw new Exception();
+    }
+    return ansLocal;
+  }
+
+  /**.
+   * @param poly param1
+   * @return Poly
+   */
+  private Poly equals(final Poly poly) {
+    for (Poly pre : getAns()) {
+      if (pre.getIt().size() != poly.getIt().size()) {
+        continue;
+      }
+      int flag = 0;
+      for (int i = 0; i < poly.getIt().size(); i++) {
+        if (!pre.getIt().get(i).getName().equals(poly.getIt().get(i).getName())
+            || pre.getIt().get(i).getPower()
+            != poly.getIt().get(i).getPower()) {
+          flag = 1;
+          break;
+        }
+      }
+
+      if (flag == 0) {
+        return pre;
+      }
+    }
+
+    return null;
+  }
+
+  // this method will DESTORY our ans
+  /**.
+   * this method will DESTORY our ans
+   * @param tmp param1
+   */
+  private void mergeSameItem(final Poly tmp) {
+    Poly poly = equals(tmp);
+    if (poly != null) {
+      poly.setPrenum(poly.getPrenum() + tmp.getPrenum());
+      if (poly.getPrenum() == 0) {
+        getAns().remove(poly);
+      }
+    } else {
+      getAns().add(tmp);
+    }
+  }
+
+  /**.
+   * @param string param1
+   * @throws Exception will throw exception
+   */
+  public final void turnStringToList(final String string) throws Exception {
+    for (MorphemeObj i : splitMorpheme(string)) {
+      Poly tmp = new Poly();
+      tmp.morpheme(i.getMorpheme(), i.getFlag());
+      mergeSameItem(tmp);
+    }
+
+  }
+
+  /**.
+   * @return String
+   */
+  public final String listToString() {
+    if (getAns().isEmpty() || getAns().size() == 1
+        && getAns().get(0).getPrenum() == 0) {
+      return "0";
+    }
+    String string = "";
+    for (Poly i : getAns()) {
+      int prenum = i.getPrenum();
+      if (prenum != 0) {
+        if (prenum < 0) {
+          string = string.concat(String.valueOf(prenum));
+        } else if (string.equals("")) {
+          string = String.valueOf(prenum);
+        } else {
+          string = string.concat("+").concat(String.valueOf(prenum));
         }
 
-        return cloned;
-    }
-
-    private char n_string  (String s,int n){
-        return s.charAt(n);
-    }
-
-    private char first_string (String s) {
-        return n_string(s, 0);
-    }
-
-    private class morpheme_obj {
-        String morpheme;
-        int flag;
-
-        morpheme_obj (String morpheme,int flag) {
-            this.flag = flag;
-            this.morpheme = morpheme;
+        for (Item var : i.getIt()) {
+          if (var.getPower() == 1) {
+            string = string.concat("*").concat(var.getName());
+          } else {
+            string = string.concat("*").concat(var.getName()).concat("^")
+                .concat(String.valueOf(var.getPower()));
+          }
         }
+      }
     }
+    return string;
+  }
 
-    private ArrayList<morpheme_obj> split_morpheme (String string) throws Exception {
-        int num = 0,start_point = 0,flag;
-        if (first_string(string) == '-') {start_point++; flag = -1;}
-        else flag = 1;
 
-        ArrayList<morpheme_obj> ans = new ArrayList<morpheme_obj>();
-        for (int i = start_point; i < string.length(); i++) {
-            if (n_string(string,i) == '(') num++;
-            else if (n_string(string,i) == ')') num--;
-            else if (n_string(string,i) == '+' && num == 0) {
-                ans.add(new morpheme_obj(string.substring(start_point,i),flag));
-                flag = 1;
-                start_point = i+1;
+  /**.
+   * @param poly param1
+   * @param vars param2
+   * @return Poly
+   * @throws Exception will throw Exception
+   */
+  private Poly symbolToNumber(final Poly poly, final ArrayList<Var> vars)
+      throws Exception {
+    Poly ansLocal = new Poly();
+    ansLocal.setPrenum(poly.getPrenum());
+
+    for (Item i : poly.getIt()) {
+      if (firstString(i.getName()) == '(') {
+        Union bracket = new Union();
+        bracket.turnStringToList(i.getName()
+            .substring(1, i.getName().length() - 1));
+        String bracketString = bracket.simply(vars);
+        try {
+          int lpre = Integer.parseInt(bracketString);
+          ansLocal.setPrenum((int) (ansLocal.getPrenum()
+              * Math.pow(lpre, i.getPower())));
+          if (poly.getPrenum() == 0) {
+            return null;
+          }
+        } catch (NumberFormatException exception) {
+          bracketString = "(".concat(bracketString).concat(")");
+          ansLocal.getIt().add(new Item(bracketString, i.getPower()));
+        }
+
+      } else {
+        int flag = 0;
+        for (Var v : vars) {
+          if (v.getName().equals(i.getName())) {
+            flag = 1;
+            ansLocal.setPrenum((int) (ansLocal.getPrenum()
+                * Math.pow(v.getValue(), i.getPower())));
+            if (poly.getPrenum() == 0) {
+              return null;
             }
-
-            else if (n_string(string,i) == '-' && num == 0 && n_string(string,i-1) != '*') {
-                ans.add(new morpheme_obj(string.substring(start_point,i),flag));
-                flag = -1;
-                start_point = i+1;
-            }
+          }
         }
+        if (flag == 0) {
+          ansLocal.getIt().add(i);
+        }
+      }
+    }
+    return ansLocal;
+  }
 
-        ans.add(new morpheme_obj(string.substring(start_point,string.length()),flag));
-        if (num != 0) throw new Exception();
-        return ans;
+  /**.
+   * @param vars param1
+   * @return string
+   * @throws Exception will throw exception
+   */
+  public final String simply(final ArrayList<Var> vars) throws Exception {
+    ArrayList<Poly> tmp = new ArrayList<Poly>();
+    tmp.addAll(getAns());
+    getAns().clear();
+
+    for (Poly i : tmp) {
+      Poly newPoly = symbolToNumber(i, vars);
+      if (newPoly != null) {
+        mergeSameItem(newPoly);
+      }
     }
 
-    private Poly equals (Poly p) {
-        for (Poly pre: ans) {
-            if (pre.it.size() != p.it.size()) continue;
-            int flag = 0;
-            for (int i = 0; i < p.it.size(); i++) {
-                if (!pre.it.get(i).name.equals(p.it.get(i).name) ||
-                        pre.it.get(i).power != p.it.get(i).power) {
-                    flag = 1;
-                    break;
-                }
-            }
+    return listToString();
+  }
 
-            if (flag == 0) return pre;
+  /**.
+   * @param poly param1
+   * @param it param2
+   * @return int
+   */
+  private int power1OtNot(final Poly poly, final Item it) {
+    if (it.getPower() == 1) {
+      poly.remove(it);
+      return 1;
+    }
+    int power = it.getPower();
+    it.setPower(it.getPower() - 1);
+    return power;
+  }
+
+
+  /**.
+   * @param poly param1
+   * @param it param2
+   * @param sym param3
+   * @return Poly
+   * @throws Exception will throw Exception
+   */
+  private Poly derivativeSingle(final Poly poly, final Item it,
+      final String sym) throws Exception {
+    Poly ansLocal = new Poly();
+    ansLocal.setPrenum(poly.getPrenum());
+    ansLocal.getIt().addAll(poly.getIt());
+
+    if (firstString(it.getName()) != '(') {
+      if (it.getName().equals(sym)) {
+        ansLocal.setPrenum(ansLocal.getPrenum() * power1OtNot(ansLocal, it));
+        if (ansLocal.getPrenum() == 0) {
+          return null;
         }
-
+      } else {
         return null;
+      }
+    } else {
+      Union bracket = new Union();
+      bracket.turnStringToList(it.getName()
+          .substring(1, (it.getName().length() - 1)));
+      String bracketString = bracket.derivative(sym);
+      try {
+        int pre = Integer.parseInt(bracketString);
+        ansLocal.setPrenum((int) (ansLocal.getPrenum()
+            * Math.pow(pre, it.getPower())));
+        ansLocal.setPrenum(ansLocal.getPrenum() * power1OtNot(ansLocal, it));
+        if (ansLocal.getPrenum() == 0) {
+          return null;
+        }
+      } catch (NumberFormatException exception) {
+        bracketString = "(".concat(bracketString).concat(")");
+        Item newItem = new Item(bracketString, 1);
+        ansLocal.getIt().add(newItem);
+        ansLocal.setPrenum(ansLocal.getPrenum() * power1OtNot(ansLocal, it));
+        if (ansLocal.getPrenum() == 0) {
+          return null;
+        }
+      }
+    }
+    return ansLocal;
+  }
+
+
+  /**.
+   * @param poly param1
+   * @param sym param2
+   * @return ArrayList
+   * @throws Exception will throw Exception
+   */
+  private ArrayList<Poly> derivativeToPoly(final Poly poly, final String sym)
+      throws Exception {
+    ArrayList<Poly> ansLocal = new ArrayList<>();
+    for (Item it : poly.getIt()) {
+      Poly tmp = derivativeSingle(poly, it, sym);
+      if (tmp != null) {
+        ansLocal.add(tmp);
+      }
+    }
+    return ansLocal;
+  }
+
+  /**.
+   * @param sym param1
+   * @return string
+   * @throws Exception will throw exception
+   */
+  public final String derivative(final String sym) throws Exception {
+    ArrayList<Poly> tmp = new ArrayList<Poly>();
+    tmp.addAll(getAns());
+    getAns().clear();
+
+    for (Poly i : tmp) {
+      ArrayList<Poly> newPoly = derivativeToPoly(i, sym);
+      for (Poly p : newPoly) {
+        mergeSameItem(p);
+      }
+
     }
 
-    // this method will DESTORY our ans
+    return listToString();
 
-    private void merge_same_item (Poly tmp) {
-        Poly k = equals(tmp);
-        if (k != null) {
-            k.prenum += tmp.prenum;
-            if (k.prenum == 0) ans.remove(k);
-        }
-        else ans.add(tmp);
-    }
-
-    public void turn_string_to_list (String string) throws Exception{
-        for (morpheme_obj i: split_morpheme(string)) {
-            Poly tmp = new Poly();
-            tmp.morpheme(i.morpheme,i.flag);
-            merge_same_item(tmp);
-        }
-
-    }
-
-    public String list_to_string () {
-        if (ans.isEmpty() || ans.size() == 1 && ans.get(0).prenum == 0) return "0";
-        String string = "";
-        for (Poly i: ans) {
-            int prenum = i.prenum;
-            if (prenum != 0) {
-                if (prenum < 0)
-                    string = string.concat(String.valueOf(prenum));
-                else
-                    if (string.equals(""))
-                        string = String.valueOf(prenum);
-                    else
-                        string = string.concat("+").concat(String.valueOf(prenum));
-
-                for (Item var : i.it) {
-                    if (var.power == 1)
-                        string = string.concat("*").concat(var.name);
-                    else
-                        string = string.concat("*").concat(var.name)
-                                .concat("^").concat(String.valueOf(var.power));
-                }
-            }
-        }
-        return string;
-    }
-
-
-    private Poly symbol_to_number (Poly p,ArrayList<Var> vars) throws Exception {
-        Poly ans = new Poly();
-        ans.prenum = p.prenum;
-
-        for (Item i:p.it) {
-            if (first_string(i.name) == '(') {
-                Union bracket = new Union();
-                bracket.turn_string_to_list(i.name.substring(1,i.name.length() -1));
-                String bracket_string = bracket.simply(vars);
-                try {
-                    int lpre = Integer.parseInt(bracket_string);
-                    ans.prenum *= Math.pow(lpre,i.power);
-                    if (p.prenum == 0) return null;
-                } catch (NumberFormatException e) {
-                    bracket_string = "(".concat(bracket_string).concat(")");
-                    ans.it.add(new Item(bracket_string,i.power));
-                }
-
-            }
-            else {
-                int flag = 0;
-                for (Var v: vars) {
-                    if (v.name.equals(i.name)) {
-                        flag = 1;
-                        ans.prenum *= Math.pow(v.value, i.power);
-                        if (p.prenum == 0) return null;
-                    }
-                }
-                if (flag == 0) ans.it.add(i);
-            }
-        }
-        return ans;
-    }
-
-    public String simply (ArrayList<Var> vars) throws Exception{
-        ArrayList<Poly> tmp = new ArrayList<Poly>();
-        tmp.addAll(ans);
-        ans.clear();
-
-        for (Poly i: tmp) {
-            Poly new_poly = symbol_to_number(i,vars);
-            if (new_poly != null)
-                merge_same_item(new_poly);
-        }
-
-        return list_to_string();
-    }
-
-    private int power_1_ot_not (Poly p,Item it) {
-        if (it.power == 1) {
-            p.remove(it);
-            return 1;
-        }
-        int k = it.power;
-        it.power--;
-        return k;
-    }
-
-
-    private Poly derivative_single (Poly p,Item it,String sym) throws Exception{
-        Poly ans = new Poly();
-        ans.prenum = p.prenum;
-        ans.it.addAll(p.it);
-
-        if (first_string(it.name) != '(') {
-            if (it.name.equals(sym)) {
-                ans.prenum *= power_1_ot_not(ans,it);
-                if (ans.prenum == 0) return null;
-            } else return null;
-        }
-        else {
-            Union bracket = new Union();
-            bracket.turn_string_to_list(it.name.substring(1,(it.name.length()-1)));
-            String bracket_string = bracket.derivative(sym);
-            try {
-                int pre = Integer.parseInt(bracket_string);
-                ans.prenum *= Math.pow(pre,it.power);
-                ans.prenum *= power_1_ot_not(ans,it);
-                if (ans.prenum == 0) return null;
-            }catch (NumberFormatException e) {
-                bracket_string = "(".concat(bracket_string).concat(")");
-                Item new_item = new Item(bracket_string,1);
-                ans.it.add(new_item);
-                ans.prenum *= power_1_ot_not(ans,it);
-                if (ans.prenum == 0) return null;
-            }
-        }
-        return ans;
-    }
-
-
-    private ArrayList<Poly> derivative_to_poly (Poly p,String sym) throws Exception {
-        ArrayList<Poly> ans = new ArrayList<>();
-        for (Item it:p.it) {
-            Poly tmp = derivative_single(p,it,sym);
-            if (tmp != null)
-                ans.add(tmp);
-        }
-        return ans;
-    }
-
-    public String derivative (String sym) throws Exception{
-        ArrayList<Poly> tmp = new ArrayList<Poly>();
-        tmp.addAll(ans);
-        ans.clear();
-
-        for (Poly i: tmp) {
-            ArrayList<Poly> new_poly = derivative_to_poly(i,sym);
-            for (Poly p: new_poly)
-                merge_same_item(p);
-
-        }
-
-        return list_to_string();
-
-    }
+  }
 
 }
