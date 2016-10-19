@@ -1,10 +1,9 @@
 package com.company;
-import com.sun.org.apache.xerces.internal.impl.dv.xs.IntegerDV;
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
 
 import java.util.ArrayList;
-import java.util.regex.*;
 import  java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 public class Main {
 
 
@@ -64,7 +63,7 @@ public class Main {
             }
            exp = in.nextLine();
         }
-
+        in.close();
 
     }
 }

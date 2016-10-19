@@ -1,10 +1,7 @@
 package com.company;
 
-import java.security.AlgorithmConstraints;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Scanner;
-import java.util.function.ObjDoubleConsumer;
 
 /**
  * Created by forandroid on 16-9-21.
