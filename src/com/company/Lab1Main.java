@@ -58,7 +58,7 @@ public final class Lab1Main {
               vars.add(new VarALongName(name, power));
             }
             final String fin = tmpSim.simply(vars);
-            if (tmpSim.listToString().equals(union.listToString())) {
+            if (fin.equals(union.listToString())) {
               System.out.println("no value has been found "
                   + "in early expression!");
             } else {
@@ -71,7 +71,7 @@ public final class Lab1Main {
             Union tmpSim;
             tmpSim = (Union) union.copy();
             final String fin = tmpSim.derivative(tmp);
-            if (tmpSim.listToString().equals(union.listToString())) {
+            if (fin.equals(union.listToString())) {
               System.out.println("no value has been found "
                   + "in early expression!");
             } else {
