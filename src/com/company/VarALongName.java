@@ -3,23 +3,23 @@ package com.company;
 /**.
  * Created by forandroid on 16-9-23.
  */
-public class Var {
+public class VarALongName {
 
   /**.
    * Member variable: name
    */
-  private String name;
+  private transient String name;
 
   /**.
    * Member variable: value
    */
-  private int value;
+  private transient int value;
 
   /**.
    * @param nameInput param1
    * @param valueInput param2
    */
-  Var(final String nameInput, final int valueInput) {
+  VarALongName(final String nameInput, final int valueInput) {
     this.setName(nameInput);
     this.setValue(valueInput);
   }
@@ -32,10 +32,10 @@ public class Var {
   }
 
   /**.
-   * @param nameInput the name to set
+   * @param nameParam the name to set
    */
-  public final void setName(final String nameInput) {
-    this.name = nameInput;
+  public final void setName(final String nameParam) {
+    this.name = nameParam;
   }
 
   /**.
@@ -46,10 +46,10 @@ public class Var {
   }
 
   /**.
-   * @param valueInput the value to set
+   * @param valueParam the value to set
    */
-  public final void setValue(final int valueInput) {
-    this.value = valueInput;
+  public final void setValue(final int valueParam) {
+    this.value = valueParam;
   }
 
 }

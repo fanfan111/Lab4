@@ -1,29 +1,54 @@
 package com.company;
 
 import java.util.ArrayList;
-
+import java.util.List;
 
 /**.
  * Created by forandroid on 16-9-23.
  */
-public class Union implements Cloneable {
+public class Union {
+
+  /**.
+   * symbol: (
+   */
+  private static final char SYMBOL_LEFT = '(';
+
+  /**.
+   * symbol: )
+   */
+  private static final char SYMBOL_RIGHT = ')';
+
+  /**.
+   * symbol: +
+   */
+  private static final char SYMBOL_PLUS = '+';
+
+  /**.
+   * symbol: -
+   */
+  private static final char SYMBOL_MINUS = '-';
+
+  /**.
+   * symbol: *
+   */
+  private static final char SYMBOL_MUL = '*';
 
   /**.
    * Member variable: ans
    */
-  private ArrayList<Poly> ans;
+  private transient List<Polynomial> ans;
 
   /**.
    * @return the ans
    */
-  public final ArrayList<Poly> getAns() {
+  public final List<Polynomial> getAns() {
     return ans;
   }
 
   /**.
    * @param ansParam the ans to set
    */
-  public final void setAns(final ArrayList<Poly> ansParam) {
+  public final void setAns(final List<Polynomial> ansParam) {
     this.ans = ansParam;
   }
 
@@ -31,7 +56,7 @@ public class Union implements Cloneable {
    * Construction method
    */
   Union() {
-    setAns(new ArrayList<Poly>());
+    setAns(new ArrayList<Polynomial>());
   }
 
   /**.
@@ -39,12 +64,13 @@ public class Union implements Cloneable {
    * @return Object
    * @throws CloneNotSupportedException will throw CloneNotSupportedException
    */
-  public final Object clone() throws CloneNotSupportedException {
-    Union cloned = new Union();
-    for (Poly p : getAns()) {
-      cloned.getAns().add((Poly) p.clone());
-    }
 
+  public final Object copy() throws CloneNotSupportedException {
+
+    final Union cloned = new Union();
+    for (final Polynomial p : getAns()) {
+      cloned.getAns().add((Polynomial) p.copy());
+    }
     return cloned;
   }
 
@@ -73,38 +99,38 @@ public class Union implements Cloneable {
     /**.
      * Member variable: morpheme
      */
-    private String morpheme;
+    private transient String morpheme;
 
     /**.
      * Member variable: flag
      */
-    private int flag;
+    private transient int flag;
 
     /**.
      * @return the morpheme
      */
-    public String getMorpheme() {
+    public final String getMorpheme() {
       return morpheme;
     }
 
     /**.
      * @param morphemeParam the morpheme to set
      */
-    public void setMorpheme(final String morphemeParam) {
+    public final void setMorpheme(final String morphemeParam) {
       this.morpheme = morphemeParam;
     }
 
     /**.
      * @return the flag
      */
-    public int getFlag() {
+    public final int getFlag() {
       return flag;
     }
 
     /**.
      * @param flagParam the flag to set
      */
-    public void setFlag(final int flagParam) {
+    public final void setFlag(final int flagParam) {
       this.flag = flagParam;
     }
 
@@ -123,30 +149,31 @@ public class Union implements Cloneable {
    * @return ArrayList
    * @throws Exception will throw Exception
    */
-  private ArrayList<MorphemeObj> splitMorpheme(final String string)
+  private List<MorphemeObj> splitMorpheme(final String string)
       throws Exception {
     int num = 0;
     int startPoint = 0;
     int flag;
-    if (firstString(string) == '-') {
+
+    if (firstString(string) == SYMBOL_MINUS) {
       startPoint++;
       flag = -1;
     } else {
       flag = 1;
     }
 
-    ArrayList<MorphemeObj> ansLocal = new ArrayList<MorphemeObj>();
+    final ArrayList<MorphemeObj> ansLocal = new ArrayList<MorphemeObj>();
     for (int i = startPoint; i < string.length(); i++) {
-      if (nstring(string, i) == '(') {
+      if (nstring(string, i) == SYMBOL_LEFT) {
         num++;
-      } else if (nstring(string, i) == ')') {
+      } else if (nstring(string, i) == SYMBOL_RIGHT) {
         num--;
-      } else if (nstring(string, i) == '+' && num == 0) {
+      } else if (nstring(string, i) == SYMBOL_PLUS && num == 0) {
         ansLocal.add(new MorphemeObj(string.substring(startPoint, i), flag));
         flag = 1;
         startPoint = i + 1;
-      } else if (nstring(string, i) == '-' && num == 0
-          && nstring(string, i - 1) != '*') {
+      } else if (nstring(string, i) == SYMBOL_MINUS && num == 0
+          && nstring(string, i - 1) != SYMBOL_MUL) {
         ansLocal.add(new MorphemeObj(string.substring(startPoint, i), flag));
         flag = -1;
         startPoint = i + 1;
@@ -156,7 +183,7 @@ public class Union implements Cloneable {
     ansLocal.add(new MorphemeObj(string.substring(startPoint, string.length()),
         flag));
     if (num != 0) {
-      throw new Exception();
+      throw new IllegalArgumentException("num = 0");
     }
     return ansLocal;
   }
@@ -165,16 +192,17 @@ public class Union implements Cloneable {
    * @param poly param1
    * @return Poly
    */
-  private Poly equals(final Poly poly) {
-    for (Poly pre : getAns()) {
-      if (pre.getIt().size() != poly.getIt().size()) {
+  private Polynomial equalsPoly(final Polynomial poly) {
+    for (final Polynomial pre : getAns()) {
+      if (pre.getItem().size() != poly.getItem().size()) {
         continue;
       }
       int flag = 0;
-      for (int i = 0; i < poly.getIt().size(); i++) {
-        if (!pre.getIt().get(i).getName().equals(poly.getIt().get(i).getName())
-            || pre.getIt().get(i).getPower()
-            != poly.getIt().get(i).getPower()) {
+      for (int i = 0; i < poly.getItem().size(); i++) {
+        if (!pre.getItem().get(i).getName()
+            .equals(poly.getItem().get(i).getName())
+            || pre.getItem().get(i).getPower()
+            != poly.getItem().get(i).getPower()) {
           flag = 1;
           break;
         }
@@ -193,15 +221,15 @@ public class Union implements Cloneable {
    * this method will DESTORY our ans
    * @param tmp param1
    */
-  private void mergeSameItem(final Poly tmp) {
-    Poly poly = equals(tmp);
-    if (poly != null) {
+  private void mergeSameItem(final Polynomial tmp) {
+    final Polynomial poly = equalsPoly(tmp);
+    if (poly == null) {
+      getAns().add(tmp);
+    } else {
       poly.setPrenum(poly.getPrenum() + tmp.getPrenum());
       if (poly.getPrenum() == 0) {
         getAns().remove(poly);
       }
-    } else {
-      getAns().add(tmp);
     }
   }
 
@@ -210,8 +238,8 @@ public class Union implements Cloneable {
    * @throws Exception will throw exception
    */
   public final void turnStringToList(final String string) throws Exception {
-    for (MorphemeObj i : splitMorpheme(string)) {
-      Poly tmp = new Poly();
+    for (final MorphemeObj i : splitMorpheme(string)) {
+      final Polynomial tmp = new Polynomial();
       tmp.morpheme(i.getMorpheme(), i.getFlag());
       mergeSameItem(tmp);
     }
@@ -222,32 +250,34 @@ public class Union implements Cloneable {
    * @return String
    */
   public final String listToString() {
+    String string = "";
     if (getAns().isEmpty() || getAns().size() == 1
         && getAns().get(0).getPrenum() == 0) {
-      return "0";
-    }
-    String string = "";
-    for (Poly i : getAns()) {
-      int prenum = i.getPrenum();
-      if (prenum != 0) {
-        if (prenum < 0) {
-          string = string.concat(String.valueOf(prenum));
-        } else if (string.equals("")) {
-          string = String.valueOf(prenum);
-        } else {
-          string = string.concat("+").concat(String.valueOf(prenum));
-        }
-
-        for (Item var : i.getIt()) {
-          if (var.getPower() == 1) {
-            string = string.concat("*").concat(var.getName());
+      string =  "0";
+    } else {
+      for (final Polynomial i : getAns()) {
+        final int prenum = i.getPrenum();
+        if (prenum != 0) {
+          if (prenum < 0) {
+            string = string.concat(String.valueOf(prenum));
+          } else if ("".equals(string)) {
+            string = String.valueOf(prenum);
           } else {
-            string = string.concat("*").concat(var.getName()).concat("^")
-                .concat(String.valueOf(var.getPower()));
+            string = string.concat("+").concat(String.valueOf(prenum));
+          }
+
+          for (final ItemALongName var : i.getItem()) {
+            if (var.getPower() - 1 == 0) {
+              string = string.concat("*").concat(var.getName());
+            } else {
+              string = string.concat("*").concat(var.getName()).concat("^")
+                 .concat(String.valueOf(var.getPower()));
+            }
           }
         }
       }
     }
+
     return string;
   }
 
@@ -255,22 +285,22 @@ public class Union implements Cloneable {
   /**.
    * @param poly param1
    * @param vars param2
-   * @return Poly
+   * @return Polynomial
    * @throws Exception will throw Exception
    */
-  private Poly symbolToNumber(final Poly poly, final ArrayList<Var> vars)
-      throws Exception {
-    Poly ansLocal = new Poly();
+  private Polynomial symbolToNumber(final Polynomial poly,
+      final List<VarALongName> vars) throws Exception {
+    final Polynomial ansLocal = new Polynomial();
     ansLocal.setPrenum(poly.getPrenum());
 
-    for (Item i : poly.getIt()) {
-      if (firstString(i.getName()) == '(') {
-        Union bracket = new Union();
+    for (final ItemALongName i : poly.getItem()) {
+      if (firstString(i.getName()) == SYMBOL_LEFT) {
+        final Union bracket = new Union();
         bracket.turnStringToList(i.getName()
             .substring(1, i.getName().length() - 1));
         String bracketString = bracket.simply(vars);
         try {
-          int lpre = Integer.parseInt(bracketString);
+          final int lpre = Integer.parseInt(bracketString);
           ansLocal.setPrenum((int) (ansLocal.getPrenum()
               * Math.pow(lpre, i.getPower())));
           if (poly.getPrenum() == 0) {
@@ -278,12 +308,13 @@ public class Union implements Cloneable {
           }
         } catch (NumberFormatException exception) {
           bracketString = "(".concat(bracketString).concat(")");
-          ansLocal.getIt().add(new Item(bracketString, i.getPower()));
+          ansLocal.getItem()
+            .add(new ItemALongName(bracketString, i.getPower()));
         }
 
       } else {
         int flag = 0;
-        for (Var v : vars) {
+        for (final VarALongName v : vars) {
           if (v.getName().equals(i.getName())) {
             flag = 1;
             ansLocal.setPrenum((int) (ansLocal.getPrenum()
@@ -294,7 +325,7 @@ public class Union implements Cloneable {
           }
         }
         if (flag == 0) {
-          ansLocal.getIt().add(i);
+          ansLocal.getItem().add(i);
         }
       }
     }
@@ -306,13 +337,13 @@ public class Union implements Cloneable {
    * @return string
    * @throws Exception will throw exception
    */
-  public final String simply(final ArrayList<Var> vars) throws Exception {
-    ArrayList<Poly> tmp = new ArrayList<Poly>();
+  public final String simply(final List<VarALongName> vars)
+      throws Exception {
+    final ArrayList<Polynomial> tmp = new ArrayList<Polynomial>();
     tmp.addAll(getAns());
     getAns().clear();
-
-    for (Poly i : tmp) {
-      Poly newPoly = symbolToNumber(i, vars);
+    for (final Polynomial i : tmp) {
+      final Polynomial newPoly = symbolToNumber(i, vars);
       if (newPoly != null) {
         mergeSameItem(newPoly);
       }
@@ -323,63 +354,69 @@ public class Union implements Cloneable {
 
   /**.
    * @param poly param1
-   * @param it param2
+   * @param itALongName param2
    * @return int
    */
-  private int power1OtNot(final Poly poly, final Item it) {
-    if (it.getPower() == 1) {
-      poly.remove(it);
-      return 1;
+  private int power1OtNot(final Polynomial poly,
+      final ItemALongName itALongName) {
+    int power = 1;
+    if (itALongName.getPower() == power) {
+      poly.remove(itALongName);
+    } else {
+      power = itALongName.getPower();
+      itALongName.setPower(itALongName.getPower() - 1);
     }
-    int power = it.getPower();
-    it.setPower(it.getPower() - 1);
     return power;
   }
 
 
   /**.
    * @param poly param1
-   * @param it param2
+   * @param itAlongname param2
    * @param sym param3
    * @return Poly
    * @throws Exception will throw Exception
    */
-  private Poly derivativeSingle(final Poly poly, final Item it,
-      final String sym) throws Exception {
-    Poly ansLocal = new Poly();
+  private Polynomial derivativeSingle(final Polynomial poly,
+      final ItemALongName itAlongname, final String sym) throws Exception {
+    final Polynomial ansLocal = new Polynomial();
     ansLocal.setPrenum(poly.getPrenum());
-    ansLocal.getIt().addAll(poly.getIt());
+    ansLocal.getItem().addAll(poly.getItem());
 
-    if (firstString(it.getName()) != '(') {
-      if (it.getName().equals(sym)) {
-        ansLocal.setPrenum(ansLocal.getPrenum() * power1OtNot(ansLocal, it));
-        if (ansLocal.getPrenum() == 0) {
-          return null;
-        }
-      } else {
-        return null;
-      }
-    } else {
-      Union bracket = new Union();
-      bracket.turnStringToList(it.getName()
-          .substring(1, (it.getName().length() - 1)));
+    if (firstString(itAlongname.getName()) == SYMBOL_LEFT) {
+      final Union bracket = new Union();
+      bracket.turnStringToList(
+          itAlongname.getName()
+          .substring(1, (itAlongname.getName().length() - 1)));
       String bracketString = bracket.derivative(sym);
       try {
-        int pre = Integer.parseInt(bracketString);
+        final int pre = Integer.parseInt(bracketString);
         ansLocal.setPrenum((int) (ansLocal.getPrenum()
-            * Math.pow(pre, it.getPower())));
-        ansLocal.setPrenum(ansLocal.getPrenum() * power1OtNot(ansLocal, it));
+            * Math.pow(pre, itAlongname.getPower())));
+        ansLocal.setPrenum(ansLocal.getPrenum()
+            * power1OtNot(ansLocal, itAlongname));
         if (ansLocal.getPrenum() == 0) {
           return null;
         }
       } catch (NumberFormatException exception) {
         bracketString = "(".concat(bracketString).concat(")");
-        Item newItem = new Item(bracketString, 1);
-        ansLocal.getIt().add(newItem);
-        ansLocal.setPrenum(ansLocal.getPrenum() * power1OtNot(ansLocal, it));
+        final ItemALongName newItem = new ItemALongName(bracketString, 1);
+        ansLocal.getItem().add(newItem);
+        ansLocal.setPrenum(ansLocal.getPrenum()
+            * power1OtNot(ansLocal, itAlongname));
         if (ansLocal.getPrenum() == 0) {
           return null;
         }
+      }
+    } else {
+      if (itAlongname.getName().equals(sym)) {
+        ansLocal.setPrenum(ansLocal.getPrenum()
+            * power1OtNot(ansLocal, itAlongname));
+        if (ansLocal.getPrenum() == 0) {
+          return null;
+        }
+      } else {
+        return null;
       }
     }
     return ansLocal;
@@ -392,11 +429,11 @@ public class Union implements Cloneable {
    * @return ArrayList
    * @throws Exception will throw Exception
    */
-  private ArrayList<Poly> derivativeToPoly(final Poly poly, final String sym)
-      throws Exception {
-    ArrayList<Poly> ansLocal = new ArrayList<>();
-    for (Item it : poly.getIt()) {
-      Poly tmp = derivativeSingle(poly, it, sym);
+  private List<Polynomial> derivativeToPoly(final Polynomial poly,
+      final String sym) throws Exception {
+    final ArrayList<Polynomial> ansLocal = new ArrayList<>();
+    for (final ItemALongName it : poly.getItem()) {
+      final Polynomial tmp = derivativeSingle(poly, it, sym);
       if (tmp != null) {
         ansLocal.add(tmp);
       }
@@ -410,13 +447,13 @@ public class Union implements Cloneable {
    * @throws Exception will throw exception
    */
   public final String derivative(final String sym) throws Exception {
-    ArrayList<Poly> tmp = new ArrayList<Poly>();
+    final ArrayList<Polynomial> tmp = new ArrayList<Polynomial>();
     tmp.addAll(getAns());
     getAns().clear();
 
-    for (Poly i : tmp) {
-      ArrayList<Poly> newPoly = derivativeToPoly(i, sym);
-      for (Poly p : newPoly) {
+    for (final Polynomial i : tmp) {
+      final List<Polynomial> newPoly = derivativeToPoly(i, sym);
+      for (final Polynomial p : newPoly) {
         mergeSameItem(p);
       }
 

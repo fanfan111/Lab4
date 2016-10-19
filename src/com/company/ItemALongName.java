@@ -3,35 +3,25 @@ package com.company;
 /**.
  * Created by forandroid.
  */
-public class Item implements Cloneable {
+public class ItemALongName {
 
   /**.
    * Member variable: name
    */
-  private String name;
+  private transient String name;
 
   /**.
    * Member variable: power
    */
-  private int power;
+  private transient int power;
 
   /**.
    * @param nameInput param1
    * @param powerInput param2
    */
-  Item(final String nameInput, final int powerInput) {
+  ItemALongName(final String nameInput, final int powerInput) {
     this.setName(nameInput);
     this.setPower(powerInput);
-  }
-
-  /**.
-   * @see java.lang.Object#clone()
-   * @return Object
-   * @throws CloneNotSupportedException will throw CloneNotSupportedException
-   */
-  public final Object clone() throws CloneNotSupportedException {
-    Item it = new Item(getName(), getPower());
-    return it;
   }
 
   /**.
@@ -60,5 +50,14 @@ public class Item implements Cloneable {
    */
   public final void setPower(final int powerParam) {
     this.power = powerParam;
+  }
+
+  /**.
+   * @see java.lang.Object#clone()
+   * @return Object
+   * @throws CloneNotSupportedException will throw CloneNotSupportedException
+   */
+  public final Object copy() {
+    return new ItemALongName(getName(), getPower());
   }
 }

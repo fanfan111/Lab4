@@ -2,25 +2,46 @@ package com.company;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 /**.
  * Created by forandroid on 16-9-21.expression between +,witch means * contained
  *
  */
-public class Poly implements Cloneable {
+public class Polynomial implements Cloneable {
+
+  /**.
+   * symbol: (
+   */
+  private static final char SYMBOL_LEFT = '(';
+
+  /**.
+   * symbol: )
+   */
+  private static final char SYMBOL_RIGHT = ')';
+
+  /**.
+   * symbol: -
+   */
+  private static final char SYMBOL_MINUS = '-';
+
+  /**.
+   * symbol: ^
+   */
+  private static final char SYMBOL_POWER = '^';
 
   /**.
    * Member variable: prenum
    */
-  private int prenum;
+  private transient int prenum;
 
 
   // the Item is expression between *
 
   /**.
-   * Member variable: it
+   * Member variable: item
    */
-  private ArrayList<Item> it;
+  private transient List<ItemALongName> item;
 
   /**.
    * @return the prenum
@@ -39,18 +60,18 @@ public class Poly implements Cloneable {
 
 
   /**.
-   * @return the it
+   * @return the item
    */
-  public final ArrayList<Item> getIt() {
-    return it;
+  public final List<ItemALongName> getItem() {
+    return item;
   }
 
 
   /**.
-   * @param itParam the it to set
+   * @param itemParam the item to set
    */
-  public final void setIt(final ArrayList<Item> itParam) {
-    this.it = itParam;
+  public final void setItem(final List<ItemALongName> itemParam) {
+    this.item = itemParam;
   }
 
 
@@ -59,11 +80,11 @@ public class Poly implements Cloneable {
    * @return Object
    * @throws CloneNotSupportedException will throw CloneNotSupportedException
    */
-  public final Object clone() throws CloneNotSupportedException {
-    Poly cloned = new Poly();
+  public final Polynomial copy() {
+    final Polynomial cloned = new Polynomial();
     cloned.setPrenum(prenum);
-    for (Item i : getIt()) {
-      cloned.getIt().add((Item) i.clone());
+    for (final ItemALongName i : getItem()) {
+      cloned.getItem().add((ItemALongName) i.copy());
     }
     return cloned;
   }
@@ -72,9 +93,9 @@ public class Poly implements Cloneable {
   /**.
    * Construction method
    */
-  Poly() {
+  Polynomial() {
     setPrenum(1);
-    setIt(new ArrayList<Item>());
+    setItem(new ArrayList<ItemALongName>());
   }
 
   /**.
@@ -82,17 +103,17 @@ public class Poly implements Cloneable {
    * @param power param2
    */
   private void createVar(final String name, final int power) {
-    getIt().add(new Item(name, power));
+    getItem().add(new ItemALongName(name, power));
   }
 
   /**.
    * @param name param1
    * @return Item
    */
-  private Item findVariable(final String name) {
-    for (int i = 0; i < getIt().size(); i++) {
-      if (getIt().get(i).getName().equals(name)) {
-        return getIt().get(i);
+  private ItemALongName findVariable(final String name) {
+    for (int i = 0; i < getItem().size(); i++) {
+      if (getItem().get(i).getName().equals(name)) {
+        return getItem().get(i);
       }
     }
     return null;
@@ -103,11 +124,11 @@ public class Poly implements Cloneable {
    * @param power param2
    */
   private void changeExp(final String name, final int power) {
-    Item item = findVariable(name);
-    if (item != null) {
-      item.setPower(item.getPower() + power);
-    } else {
+    final ItemALongName itemLocal = findVariable(name);
+    if (itemLocal == null) {
       createVar(name, power);
+    } else {
+      itemLocal.setPower(itemLocal.getPower() + power);
     }
   }
 
@@ -134,22 +155,22 @@ public class Poly implements Cloneable {
    */
   private int findNumber(final String string) {
     int anspos = 0;
-    if (firstString(string) == '-') {
+    if (firstString(string) == SYMBOL_MINUS) {
       anspos++;
-      if (!((nstring(string, anspos) <= '9'
-          && nstring(string, anspos) >= '0'))) {
+      if (!(nstring(string, anspos) <= '9'
+          && nstring(string, anspos) >= '0')) {
         return -1;
       }
     }
 
     for (; anspos < string.length(); anspos++) {
-      if (!((nstring(string, anspos) <= '9'
-          && nstring(string, anspos) >= '0'))) {
+      if (!(nstring(string, anspos) <= '9'
+          && nstring(string, anspos) >= '0')) {
         break;
       }
     }
-    int ans = Integer.parseInt(string.substring(0, anspos));
-    return ans;
+
+    return Integer.parseInt(string.substring(0, anspos));
   }
 
   /**.
@@ -159,11 +180,11 @@ public class Poly implements Cloneable {
    */
   private int howLongTheNumber(final String string, final int start) {
     int tmpStart = start;
-    if (nstring(string, tmpStart) == '-') {
+    if (nstring(string, tmpStart) == SYMBOL_MINUS) {
       tmpStart++;
     }
     for (int i = tmpStart; i < string.length(); i++) {
-      if (!((nstring(string, i) <= '9' && nstring(string, i) >= '0'))) {
+      if (!(nstring(string, i) <= '9' && nstring(string, i) >= '0')) {
         return i;
       }
     }
@@ -177,10 +198,10 @@ public class Poly implements Cloneable {
   private int findRightBraket(final String string) {
     int num = 0;
     for (int i = 0; i < string.length(); i++) {
-      if (string.charAt(i) == '(') {
+      if (string.charAt(i) == SYMBOL_LEFT) {
         num++;
       }
-      if (string.charAt(i) == ')') {
+      if (string.charAt(i) == SYMBOL_RIGHT) {
         num--;
         if (num == 0) {
           return i;
@@ -205,8 +226,8 @@ public class Poly implements Cloneable {
    * @return int
    */
   private int havePowerOrNotJudge(final String name, final String power) {
-    if ((firstString(power)) == '^') {
-      changeExp(name, (findNumber(power.substring(1))));
+    if (firstString(power) == SYMBOL_POWER) {
+      changeExp(name, findNumber(power.substring(1)));
       return name.length() + howLongTheNumber(power, 1);
     } else {
       changeExp(name, 1);
@@ -220,7 +241,7 @@ public class Poly implements Cloneable {
    * @return int
    */
   private int havePowerOrNot(final String name, final String power) {
-    if (power.equals("")) {
+    if ("".equals(power)) {
       return havePowerOrNotJudge(name, "1");
     } else {
       return havePowerOrNotJudge(name, power);
@@ -234,14 +255,15 @@ public class Poly implements Cloneable {
    * @throws Exception will throw Exception
    */
   private int numberAddToList(final String string) throws Exception {
-    char ch = firstString(string);
-    if ('a' <= ch && ch <= 'z') {
+    final char firstChar = firstString(string);
+    if ('a' <= firstChar && firstChar <= 'z') {
       return havePowerOrNot(string.substring(0, 1), string.substring(1));
-    } else if (ch == '(') {
+    } else if (firstChar == SYMBOL_LEFT) {
       return havePowerOrNot(bracketExpressionFromLeft(string),
           string.substring(findRightBraket(string) + 1));
     } else {
-      throw new Exception("not legal in number-started expression");
+      throw new IllegalArgumentException("not legal"
+          + " in number-started expression");
     }
 
   }
@@ -251,7 +273,7 @@ public class Poly implements Cloneable {
    * @throws Exception will throw Exception
    */
   private void startWithNumber(final String string) throws Exception {
-    int prenumLocal = findNumber(string);
+    final int prenumLocal = findNumber(string);
     this.setPrenum(this.getPrenum() * prenumLocal);
     for (int i = howLongTheNumber(string, 0); i < string.length();) {
       i += numberAddToList(string.substring(i));
@@ -263,12 +285,12 @@ public class Poly implements Cloneable {
    * @return String
    */
   private String symName(final String string) {
-    char ch = firstString(string);
-    if (ch == '(') {
+    final char firstChar = firstString(string);
+    if (firstChar == SYMBOL_LEFT) {
       return string.substring(0, (findRightBraket(string) + 1));
     } else {
-      int pos1 = string.indexOf('^');
-      int pos2 = string.indexOf('(');
+      final int pos1 = string.indexOf('^');
+      final int pos2 = string.indexOf('(');
       if (pos1 == -1 && pos2 == -1) {
         return string;
       }
@@ -287,7 +309,7 @@ public class Poly implements Cloneable {
    * @return int
    */
   private int symbolAddToList(final String string) {
-    String name = symName(string);
+    final String name = symName(string);
     return havePowerOrNot(name, string.substring(name.length()));
   }
 
@@ -305,7 +327,7 @@ public class Poly implements Cloneable {
    * @throws Exception will throw Exception
    */
   private void minmor(final String string) throws Exception {
-    char first = firstString(string);
+    final char first = firstString(string);
     if (first >= '0' && first <= '9' || first == '-') {
       startWithNumber(string);
     }
@@ -319,15 +341,15 @@ public class Poly implements Cloneable {
    * @param sym param2
    * @return ArrayList
    */
-  private ArrayList<String> bracketSplit(final String origin, final char sym) {
-    ArrayList<String> ans = new ArrayList<String>();
+  private List<String> bracketSplit(final String origin, final char sym) {
+    final List<String> ans = new ArrayList<String>();
     int num = 0;
     int startPoint = 0;
     for (int i = 0; i < origin.length(); i++) {
-      if (nstring(origin, i) == '(') {
+      if (nstring(origin, i) == SYMBOL_LEFT) {
         num++;
       }
-      if (nstring(origin, i) == ')') {
+      if (nstring(origin, i) == SYMBOL_RIGHT) {
         num--;
       }
       if (nstring(origin, i) == sym && num == 0) {
@@ -349,27 +371,33 @@ public class Poly implements Cloneable {
   public final void morpheme(final String string, final int posOrNeg)
       throws Exception {
     this.setPrenum(posOrNeg);
-    for (String s : bracketSplit(string, '*')) {
+    for (final String s : bracketSplit(string, '*')) {
       minmor(s);
     }
 
-    this.getIt().sort(new Comparator<Item>() {
+    this.getItem().sort(new Comparator<ItemALongName>() {
+      /**.
+       * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+       * @param item1 param1
+       * @param item2 param2
+       * @return int
+       */
       @Override
-      public int compare(final Item o1, final Item o2) {
-        return o1.getName().compareTo(o2.getName());
+      public int compare(final ItemALongName item1, final ItemALongName item2) {
+        return item1.getName().compareTo(item2.getName());
       }
     });
   }
 
   /**.
-   * @param itParam param1
+   * @param itemParam param1
    * @return Poly
    */
-  public final Poly remove(final Item itParam) {
-    Poly ans = new Poly();
+  public final Polynomial remove(final ItemALongName itemParam) {
+    final Polynomial ans = new Polynomial();
     ans.setPrenum(this.getPrenum());
-    ans.setIt(this.getIt());
-    ans.getIt().remove(itParam);
+    ans.setItem(this.getItem());
+    ans.getItem().remove(itemParam);
     return ans;
 
   }
@@ -379,7 +407,7 @@ public class Poly implements Cloneable {
    */
   public final void printOut() {
     System.out.println(getPrenum());
-    for (Item i : getIt()) {
+    for (final ItemALongName i : getItem()) {
       System.out.printf("%s %s\n", i.getName(), i.getPower());
     }
 

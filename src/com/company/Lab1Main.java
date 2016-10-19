@@ -9,12 +9,22 @@ import java.util.regex.Pattern;
  * Created by forandroid.
  */
 
-public final class Main {
+public final class Lab1Main {
+
+  /**.
+   * derivative string offset value
+   */
+  private static final int DERIV_OFFSET = 5;
+
+  /**.
+   * command flag: !
+   */
+  private static final char COMMAND_FLAG = '!';
 
   /**.
    * not called
    */
-  private Main() {
+  private Lab1Main() {
     // not called
   }
 
@@ -22,39 +32,32 @@ public final class Main {
    * @param args param1
    */
   public static void main(final String[] args) {
-    Scanner in = new Scanner(System.in);
-    ArrayList<Var> vars = new ArrayList<>();
-    Pattern simplify = Pattern.compile("^!simplify\\s(\\w+=\\d+\\s?)+");
-    Pattern simplifyS = Pattern.compile("\\w+=\\d+");
-    Pattern derivative = Pattern.compile("^!d/d\\s\\w+");
+    final Scanner inShortFix = new Scanner(System.in);
+    final ArrayList<VarALongName> vars = new ArrayList<>();
+    final Pattern simplify = Pattern.compile("^!simplify\\s(\\w+=\\d+\\s?)+");
+    final Pattern simplifyS = Pattern.compile("\\w+=\\d+");
+    final Pattern derivative = Pattern.compile("^!d/d\\s\\w+");
 
-    final int derivativeConst = 5;
-
-    String exp = in.nextLine();
-    Union union = new Union();
-    while (!exp.equals("exit")) {
+    String exp = inShortFix.nextLine();
+    final Union union = new Union();
+    while (!"exit".equals(exp)) {
 
       try {
-        if (exp.charAt(0) != '!') {
-          union.getAns().clear();
-          exp = exp.replace(" ", "");
-          union.turnStringToList(exp);
-          System.out.println(union.listToString());
-        } else {
-          Matcher sm = simplify.matcher(exp);
-          Matcher sms = simplifyS.matcher(exp);
-          Matcher dm = derivative.matcher(exp);
+        if (exp.charAt(0) == COMMAND_FLAG) {
+          final Matcher smShortFix = simplify.matcher(exp);
+          final Matcher sms = simplifyS.matcher(exp);
+          final Matcher dmShortFix = derivative.matcher(exp);
 
-          if (sm.find()) {
-            Union tmpSim = (Union) union.clone();
+          if (smShortFix.find()) {
+            final Union tmpSim = (Union) union.copy();
             while (sms.find()) {
-              String tmp = sms.group();
-              int pos = tmp.indexOf('=');
-              String name = tmp.substring(0, pos);
-              int power = Integer.parseInt(tmp.substring(pos + 1));
-              vars.add(new Var(name, power));
+              final String tmp = sms.group();
+              final int pos = tmp.indexOf('=');
+              final String name = tmp.substring(0, pos);
+              final int power = Integer.parseInt(tmp.substring(pos + 1));
+              vars.add(new VarALongName(name, power));
             }
-            String fin = tmpSim.simply(vars);
+            final String fin = tmpSim.simply(vars);
             if (tmpSim.listToString().equals(union.listToString())) {
               System.out.println("no value has been found "
                   + "in early expression!");
@@ -62,12 +65,12 @@ public final class Main {
               System.out.println(fin);
             }
             vars.clear();
-          } else if (dm.find()) {
+          } else if (dmShortFix.find()) {
 
-            String tmp = exp.substring(derivativeConst);
+            final String tmp = exp.substring(DERIV_OFFSET);
             Union tmpSim;
-            tmpSim = (Union) union.clone();
-            String fin = tmpSim.derivative(tmp);
+            tmpSim = (Union) union.copy();
+            final String fin = tmpSim.derivative(tmp);
             if (tmpSim.listToString().equals(union.listToString())) {
               System.out.println("no value has been found "
                   + "in early expression!");
@@ -77,14 +80,18 @@ public final class Main {
           } else {
             System.out.println("wrong command!");
           }
+        } else {
+          union.getAns().clear();
+          exp = exp.replace(" ", "");
+          union.turnStringToList(exp);
+          System.out.println(union.listToString());
         }
       } catch (Exception exception) {
         System.out.println("wrong format");
-
       }
-      exp = in.nextLine();
+      exp = inShortFix.nextLine();
     }
 
-    in.close();
+    inShortFix.close();
   }
 }
